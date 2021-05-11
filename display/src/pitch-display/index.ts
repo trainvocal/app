@@ -37,7 +37,7 @@ class PitchDisplay {
     this.noteCanvas = document.createElement("canvas");
     this.noteCanvas.setAttribute("style", canvasStyle);
     this.noteContext = this.noteCanvas.getContext('2d');
-    
+
     this.container.appendChild(this.bgCanvas);
     this.container.appendChild(this.noteCanvas);
 
@@ -57,7 +57,7 @@ class PitchDisplay {
     this.noteCanvas.height = h;
 
     this.scaleX = scaleLinear()
-      .domain([-this.timeOffset, -this.timeOffset + this.timeSpan])
+      .domain([-(this.timeOffset / 2), -(this.timeOffset / 2) + this.timeSpan])
       .range([0, w]);
 
     let margin = h / (NOTE_STRINGS.length + 1);
@@ -74,7 +74,7 @@ class PitchDisplay {
 
   cleanupFrequencies() {
     // Throw away the frequencies that are out of the current display window
-    this.frequencies = this.frequencies.filter((val) => this.now - val.time < this.timeOffset);
+    this.frequencies = this.frequencies.filter((val) => this.now - val.time < this.timeOffset / 2);
   }
 
   render(full: boolean = true) {
@@ -102,6 +102,7 @@ class PitchDisplay {
     this.bgContext.fillStyle = this.background;
     this.bgContext.clearRect(0, 0, w, h);
     this.bgContext.fillRect(0, 0, w, h);
+    const timeRightPos: number = this.scaleX(this.timeOffset / 2);
 
     for (let i = 0; i < NOTE_STRINGS.length; ++i) {
       let y = this.scaleY(i);
@@ -109,18 +110,18 @@ class PitchDisplay {
       this.bgContext.fillRect(0, y, w, 1);
       this.bgContext.fillStyle = this.highlight;
       this.bgContext.font = '14px Sans'
-      this.bgContext.fillText(NOTE_STRINGS[i], this.scaleX(0) + 20, y - 2);
+      this.bgContext.fillText(NOTE_STRINGS[i], timeRightPos + 20, y - 2);
       this.bgContext.fillText(NOTE_STRINGS[i], 20, y - 2);
     }
 
     this.bgContext.fillStyle = this.highlight + '55';
-    this.bgContext.fillRect(this.scaleX(0), 0, 1, h);
+    this.bgContext.fillRect(timeRightPos, 0, 1, h);
   }
 
   drawNotes() {
     let w = this.noteCanvas.width;
     let h = this.noteCanvas.height;
-    
+
     this.noteContext.clearRect(0, 0, w, h);
     this.noteContext.beginPath();
     this.noteContext.strokeStyle = 'rgba(0, 0, 0, 0.1)';
