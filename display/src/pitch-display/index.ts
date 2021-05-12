@@ -28,7 +28,6 @@ class PitchDisplay {
   melodyContext: CanvasRenderingContext2D;
   noteContext: CanvasRenderingContext2D;
   timeSpan: number;
-  timeOffset: number;
   lastSongPos: number;
   songPlaying: boolean;
   songResumed: number;
@@ -37,7 +36,7 @@ class PitchDisplay {
   background: string = '#efefef';
   highlight: string = '#888888';
 
-  constructor(container: HTMLElement, timeSpan: number = 15000, timeOffset = 7000) {
+  constructor(container: HTMLElement, timeSpan: number = 15000) {
     this.container = container;
 
     this.container.style.position = "relative";
@@ -59,7 +58,6 @@ class PitchDisplay {
     this.container.appendChild(this.noteCanvas);
 
     this.timeSpan = timeSpan;
-    this.timeOffset = timeOffset;
 
     this.lastSongPos = 0;
     this.songResumed = 0;
@@ -80,7 +78,7 @@ class PitchDisplay {
     this.noteCanvas.height = h;
 
     this.scaleX = scaleLinear()
-      .domain([-(this.timeOffset / 2), -(this.timeOffset / 2) + this.timeSpan])
+      .domain([-(this.timeSpan / 2), this.timeSpan / 2])
       .range([0, w]);
 
     let margin = h / (NOTE_STRINGS.length + 1);
@@ -97,7 +95,7 @@ class PitchDisplay {
 
   cleanupFrequencies() {
     // Throw away the frequencies that are out of the current display window
-    this.frequencies = this.frequencies.filter((val) => this.now - val.time < this.timeOffset / 2);
+    this.frequencies = this.frequencies.filter((val) => this.now - val.time < this.timeSpan / 2);
   }
 
   setMelodyNotes(melodyNotes: IMelodyNote[]) {
@@ -147,7 +145,6 @@ class PitchDisplay {
     this.bgContext.fillStyle = this.background;
     this.bgContext.clearRect(0, 0, w, h);
     this.bgContext.fillRect(0, 0, w, h);
-    const timeRightPos: number = this.scaleX(this.timeOffset / 2);
 
     for (let i = 0; i < NOTE_STRINGS.length; ++i) {
       let y = this.scaleY(i);
@@ -155,12 +152,11 @@ class PitchDisplay {
       this.bgContext.fillRect(0, y, w, 1);
       this.bgContext.fillStyle = this.highlight;
       this.bgContext.font = '14px Sans'
-      this.bgContext.fillText(NOTE_STRINGS[i], timeRightPos + 20, y - 2);
-      this.bgContext.fillText(NOTE_STRINGS[i], 20, y - 2);
+      this.bgContext.fillText(NOTE_STRINGS[i], this.scaleX(0) + 20, y - 2);
     }
 
     this.bgContext.fillStyle = this.highlight + '55';
-    this.bgContext.fillRect(timeRightPos, 0, 1, h);
+    this.bgContext.fillRect(this.scaleX(0), 0, 1, h);
   }
 
   drawNotes() {

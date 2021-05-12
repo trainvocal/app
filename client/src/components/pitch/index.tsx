@@ -4,23 +4,12 @@ import { PitchDisplay } from 'pitch-display';
 
 import { BACKGROUND } from '../../constants/colors';
 
+import NOTES from '../../notes.json';
+
 export interface PitchProps {
   freq: number | null;
   clarity: number | null;
 }
-
-const MELODY_NOTES = [
-  {
-    start: 3000,
-    duration: 500,
-    pitch: 28,
-  },
-  {
-    start: 4000,
-    duration: 500,
-    pitch: 28,
-  },
-];
 
 class PitchComponent extends Component<PitchProps> {
   displayElement = React.createRef<HTMLDivElement>();
@@ -31,11 +20,11 @@ class PitchComponent extends Component<PitchProps> {
   componentDidMount() {
     this.pitchDisplay = new PitchDisplay(
       this.displayElement.current!,
-      6000,
-      5000
+      6000
     );
     this.pitchDisplay.setBackgroundColor(BACKGROUND);
-    this.pitchDisplay.setMelodyNotes(MELODY_NOTES);
+    console.debug(NOTES);
+    this.pitchDisplay.setMelodyNotes(NOTES.notes);
     this.pitchDisplay.playSong();
 
     // We want to ensure `pitchDisplay` updates at regular
