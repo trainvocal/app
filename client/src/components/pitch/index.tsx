@@ -9,6 +9,19 @@ export interface PitchProps {
   clarity: number | null;
 }
 
+const MELODY_NOTES = [
+  {
+    start: 3000,
+    duration: 500,
+    pitch: 28,
+  },
+  {
+    start: 4000,
+    duration: 500,
+    pitch: 28,
+  },
+];
+
 class PitchComponent extends Component<PitchProps> {
   displayElement = React.createRef<HTMLDivElement>();
   pitchDisplay?: PitchDisplay;
@@ -22,6 +35,8 @@ class PitchComponent extends Component<PitchProps> {
       5000
     );
     this.pitchDisplay.setBackgroundColor(BACKGROUND);
+    this.pitchDisplay.setMelodyNotes(MELODY_NOTES);
+    this.pitchDisplay.playSong();
 
     // We want to ensure `pitchDisplay` updates at regular
     // time intervals even if the note has not changed (so

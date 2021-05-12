@@ -10,18 +10,30 @@ interface IFrequency {
   time: number;
 }
 
+interface IMelodyNote {
+  start: number;
+  duration: number;
+  pitch: number;
+}
+
 class PitchDisplay {
   scaleX: ScaleLinear<number, number>;
   scaleY: ScaleLinear<number, number>;
   now: number; // Time at the last call to render()
   container: HTMLElement;
   bgCanvas: HTMLCanvasElement;
+  melodyCanvas: HTMLCanvasElement;
   noteCanvas: HTMLCanvasElement;
   bgContext: CanvasRenderingContext2D;
+  melodyContext: CanvasRenderingContext2D;
   noteContext: CanvasRenderingContext2D;
   timeSpan: number;
   timeOffset: number;
+  lastSongPos: number;
+  songPlaying: boolean;
+  songResumed: number;
   frequencies: IFrequency[] = [];
+  melodyNotes: IMelodyNote[] = [];
   background: string = '#efefef';
   highlight: string = '#888888';
 
@@ -34,15 +46,24 @@ class PitchDisplay {
     this.bgCanvas.setAttribute("style", canvasStyle);
     this.bgContext = this.bgCanvas.getContext('2d');
 
+    this.melodyCanvas = document.createElement("canvas");
+    this.melodyCanvas.setAttribute("style", canvasStyle);
+    this.melodyContext = this.melodyCanvas.getContext('2d');
+
     this.noteCanvas = document.createElement("canvas");
     this.noteCanvas.setAttribute("style", canvasStyle);
     this.noteContext = this.noteCanvas.getContext('2d');
 
     this.container.appendChild(this.bgCanvas);
+    this.container.appendChild(this.melodyCanvas);
     this.container.appendChild(this.noteCanvas);
 
     this.timeSpan = timeSpan;
     this.timeOffset = timeOffset;
+
+    this.lastSongPos = 0;
+    this.songResumed = 0;
+    this.songPlaying = false;
 
     this.resize();
   }
@@ -53,6 +74,8 @@ class PitchDisplay {
 
     this.bgCanvas.width = w;
     this.bgCanvas.height = h;
+    this.melodyCanvas.width = w;
+    this.melodyCanvas.height = h;
     this.noteCanvas.width = w;
     this.noteCanvas.height = h;
 
@@ -77,12 +100,34 @@ class PitchDisplay {
     this.frequencies = this.frequencies.filter((val) => this.now - val.time < this.timeOffset / 2);
   }
 
+  setMelodyNotes(melodyNotes: IMelodyNote[]) {
+    this.melodyNotes = melodyNotes;
+  }
+
+  playSong() {
+    this.songResumed = (new Date()).getTime();
+    this.songPlaying = true;
+  }
+
+  pauseSong() {
+    // save current song position
+    this.lastSongPos = (new Date()).getTime() - this.songResumed;
+    this.songPlaying = false;
+  }
+
   render(full: boolean = true) {
     this.now = (new Date()).getTime();
+    // calculate song position
+    let songPos: number = this.lastSongPos;
+    if (this.songPlaying) {
+      songPos += this.now - this.songResumed;
+    }
+
     this.cleanupFrequencies();
     if (full) {
       this.drawBackground();
     }
+    this.drawMelody(songPos);
     this.drawNotes();
   }
 
@@ -169,6 +214,26 @@ class PitchDisplay {
       this.noteContext.beginPath();
       this.noteContext.arc(x, y, 3, 0, Math.PI * 2);
       this.noteContext.fill();
+    }
+  }
+
+  drawMelody(songPos: number) {
+    let w = this.melodyCanvas.width;
+    let h = this.melodyCanvas.height;
+
+    const ctx: CanvasRenderingContext2D = this.melodyContext;
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(0, 255, 0, 1)';
+    ctx.lineWidth = h / 24;
+    for (let note of this.melodyNotes) {
+      const { start, duration, pitch } = note;
+      const startX = this.scaleX(start - songPos);
+      const endX = this.scaleX(start - songPos + duration);
+      const y = this.scaleY(pitch % 12);
+      ctx.beginPath();
+      ctx.moveTo(startX, y);
+      ctx.lineTo(endX, y);
+      ctx.stroke();
     }
   }
 }
