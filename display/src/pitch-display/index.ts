@@ -29,8 +29,8 @@ class PitchDisplay {
   noteContext: CanvasRenderingContext2D;
   timeSpan: number;
   lastSongPos: number;
-  songPlaying: boolean;
-  songResumed: number;
+  playingSpeed: number;
+  speedChanged: number;
   frequencies: IFrequency[] = [];
   melodyNotes: IMelodyNote[] = [];
   background: string = '#efefef';
@@ -60,8 +60,8 @@ class PitchDisplay {
     this.timeSpan = timeSpan;
 
     this.lastSongPos = 0;
-    this.songResumed = 0;
-    this.songPlaying = false;
+    this.speedChanged = undefined;
+    this.playingSpeed = 0;
 
     this.resize();
   }
@@ -103,23 +103,35 @@ class PitchDisplay {
   }
 
   playSong() {
-    this.songResumed = (new Date()).getTime();
-    this.songPlaying = true;
+    this.changePlayingSpeed(1);
+  }
+
+  fastForwardSong() {
+    this.changePlayingSpeed(3);
   }
 
   pauseSong() {
-    // save current song position
-    this.lastSongPos = (new Date()).getTime() - this.songResumed;
-    this.songPlaying = false;
+    this.changePlayingSpeed(0);
+  }
+
+  calculateSongPos(now: number) {
+    return this.lastSongPos + this.playingSpeed * (now - this.speedChanged);
+  }
+
+  changePlayingSpeed(speed: number) {
+    const now = (new Date()).getTime();
+    if (this.speedChanged === undefined) {
+      this.speedChanged = now;
+    }
+    this.lastSongPos = this.calculateSongPos(now);
+    this.playingSpeed = speed;
+    this.speedChanged = now;
   }
 
   render(full: boolean = true) {
     this.now = (new Date()).getTime();
     // calculate song position
-    let songPos: number = this.lastSongPos;
-    if (this.songPlaying) {
-      songPos += this.now - this.songResumed;
-    }
+    const songPos = this.calculateSongPos(this.now);
 
     this.cleanupFrequencies();
     if (full) {

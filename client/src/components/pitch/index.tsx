@@ -1,14 +1,30 @@
 import React, { Component } from 'react';
+import qs from 'qs';
 
 import { PitchDisplay } from 'pitch-display';
 
 import { BACKGROUND } from '../../constants/colors';
-
-import NOTES from '../../notes.json';
+import { decodeS1 } from '../../services/s1Encoding';
 
 export interface PitchProps {
   freq: number | null;
   clarity: number | null;
+}
+
+function FastForwardButton({ onPress, onRelease, style }) {
+  return (
+    <div style={style} onMouseDown={onPress} onMouseUp={onRelease}>
+      FAST FORWARD
+    </div>
+  );
+}
+
+function PauseButton({ onPress, onRelease, style }) {
+  return (
+    <div style={style} onMouseDown={onPress} onMouseUp={onRelease}>
+      PAUSE
+    </div>
+  );
 }
 
 class PitchComponent extends Component<PitchProps> {
@@ -16,15 +32,17 @@ class PitchComponent extends Component<PitchProps> {
   pitchDisplay?: PitchDisplay;
   lastRender: number = 0;
   continuousUpdate: boolean = true;
+  notes: [];
 
   componentDidMount() {
+    this.readNotes();
+
     this.pitchDisplay = new PitchDisplay(
       this.displayElement.current!,
       6000
     );
     this.pitchDisplay.setBackgroundColor(BACKGROUND);
-    console.debug(NOTES);
-    this.pitchDisplay.setMelodyNotes(NOTES.notes);
+    this.pitchDisplay.setMelodyNotes(this.notes);
     this.pitchDisplay.playSong();
 
     // We want to ensure `pitchDisplay` updates at regular
@@ -43,6 +61,19 @@ class PitchComponent extends Component<PitchProps> {
   componentWillUnmount() {
     this.continuousUpdate = false;
     window.removeEventListener('resize', this.onResize);
+  }
+
+  readNotes() {
+    // decode notes from query parameter
+    this.notes = [];
+    const params = qs.parse(window.location.search.substr(1));
+    if (params.s1) {
+      try {
+        this.notes = decodeS1(params.s1);
+      } catch (error) {
+        alert(error.toString());
+      }
+    }
   }
 
   onResize = () => {
@@ -74,12 +105,32 @@ class PitchComponent extends Component<PitchProps> {
 
   render() {
     this.updatePitch();
+    const fastForwardStyle = {
+      position: 'absolute',
+      bottom: 40,
+      right: 40,
+    };
+    const pauseStyle = {
+      position: 'absolute',
+      bottom: 40,
+      left: 80,
+    };
     return (
       <React.Fragment>
         <div
           className="full"
           style={{ position: 'relative' }}
           ref={this.displayElement}
+        />
+        <PauseButton
+          onPress={() => this.pitchDisplay.pauseSong()}
+          onRelease={() => this.pitchDisplay.playSong()}
+          style={pauseStyle}
+        />
+        <FastForwardButton
+          onPress={() => this.pitchDisplay.fastForwardSong()}
+          onRelease={() => this.pitchDisplay.playSong()}
+          style={fastForwardStyle}
         />
       </React.Fragment>
     );
