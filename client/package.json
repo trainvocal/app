@@ -1,7 +1,7 @@
 {
   "name": "client",
   "version": "0.1.0",
-  "homepage": "https://myvocal.github.io/myvocal",
+  "homepage": "https://trainvocal.github.io/app",
   "license": "MIT",
   "private": true,
   "dependencies": {
