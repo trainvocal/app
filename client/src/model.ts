@@ -11,6 +11,19 @@ import { Connection, ParentHandshake, WorkerMessenger } from 'post-me';
 type Detector = 'mcleod' | 'autocorrelation';
 type DisplayType = 'chart' | 'circle';
 
+interface IMelodyNote {
+  start: number;
+  duration: number;
+  pitch: number;
+}
+
+type IMelodyNotes = IMelodyNote[];
+
+interface Melody {
+  title: string;
+  notes: IMelodyNotes;
+}
+
 interface StoreModel {
   windowSize: number;
   setWindowSize: Action<StoreModel, number>;
@@ -40,6 +53,9 @@ interface StoreModel {
   workerConnection: Connection | null | undefined;
   setWorkerConnection: Action<StoreModel, Connection | null>;
   initializeWorker: Thunk<StoreModel, void>;
+
+  melody: Melody;
+  setMelodyNotes: Action<StoreModel, IMelodyNotes>;
 }
 
 export const store = createStore<StoreModel>({
@@ -54,6 +70,7 @@ export const store = createStore<StoreModel>({
   stream: null,
   audioOptions: { audio: { echoCancellation: true, autoGainControl: true } },
   workerConnection: null,
+  melody: {},
 
   setWindowSize: action((state, payload) => {
     state.windowSize = payload;
@@ -126,6 +143,10 @@ export const store = createStore<StoreModel>({
       console.error('Failed to connect to worker', e);
       actions.setWorkerConnection(null);
     }
+  }),
+
+  setMelodyNotes: action((state, payload) => {
+    state.melody.notes = payload;
   }),
 });
 

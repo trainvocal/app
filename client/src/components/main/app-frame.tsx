@@ -1,6 +1,8 @@
 import React from 'react';
 import { ListGroup, Navbar } from 'react-bootstrap';
 import { Gear, Lightbulb, Play, Stop } from 'react-bootstrap-icons';
+import qs from 'qs';
+
 import { useStoreActions, useStoreState } from '../../model';
 import {
   NavIcon,
@@ -10,6 +12,7 @@ import {
   SideNav,
   Toggle,
 } from '../side-nav/side-nav';
+import { decodeS1 } from '../../services/s1Encoding';
 import {
   SelectClarityThreshold,
   SelectDetector,
@@ -17,12 +20,28 @@ import {
   SelectWindowSize,
 } from './options';
 
+const readMelodyNotes = () => {
+  const params = qs.parse(window.location.search.substr(1));
+  if (params.s1) {
+    try {
+      return decodeS1(params.s1);
+    } catch (error) {
+      alert(error.toString());
+    }
+  }
+};
+
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const [menuExpanded, setMenuExpanded] = React.useState(false);
   const [running, setRunning] = React.useState(false);
   const clarityThreshold = useStoreState((state) => state.clarityThreshold);
 
-  const { initializeStream, stopStream, setEnabled } = useStoreActions(
+  const {
+    initializeStream,
+    stopStream,
+    setEnabled,
+    setMelodyNotes,
+  } = useStoreActions(
     (actions) => actions
   );
 
@@ -39,15 +58,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         await stopStream();
         console.log('Stream Stopped');
       })();
+
+      const notes = readMelodyNotes();
+      if (notes) {
+        setMelodyNotes(notes);
+      }
     }
 
     return stopStream;
-  }, [initializeStream, running, setEnabled, stopStream]);
+  }, [
+    initializeStream,
+    running,
+    setEnabled,
+    setMelodyNotes,
+    stopStream,
+  ]);
 
   return (
     <React.Fragment>
       <Navbar bg="primary" variant="dark">
-        <Navbar.Brand>Pitch Detector</Navbar.Brand>
+        <Navbar.Brand>My Vocal</Navbar.Brand>
       </Navbar>
       <div className="main-container">
         <SideNav expanded={menuExpanded} onToggle={setMenuExpanded}>

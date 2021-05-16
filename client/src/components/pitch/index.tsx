@@ -1,10 +1,10 @@
-import React, { Component } from 'react';
+import React, { Component, useCallback, useEffect, useRef } from 'react';
 import qs from 'qs';
 
 import { PitchDisplay } from 'pitch-display';
 
 import { BACKGROUND } from '../../constants/colors';
-import { decodeS1 } from '../../services/s1Encoding';
+import { useStoreState } from '../../model';
 
 export interface PitchProps {
   freq: number | null;
@@ -27,114 +27,112 @@ function PauseButton({ onPress, onRelease, style }) {
   );
 }
 
-class PitchComponent extends Component<PitchProps> {
-  displayElement = React.createRef<HTMLDivElement>();
-  pitchDisplay?: PitchDisplay;
-  lastRender: number = 0;
-  continuousUpdate: boolean = true;
-  notes: [];
+const useAnimationFrame = (callback) => {
+  const requestRef = useRef();
 
-  componentDidMount() {
-    this.readNotes();
-
-    this.pitchDisplay = new PitchDisplay(
-      this.displayElement.current!,
-      6000
-    );
-    this.pitchDisplay.setBackgroundColor(BACKGROUND);
-    this.pitchDisplay.setMelodyNotes(this.notes);
-    this.pitchDisplay.playSong();
-
-    // We want to ensure `pitchDisplay` updates at regular
-    // time intervals even if the note has not changed (so
-    // that the display continues scrolling)
-    const startRender = () => {
-      this.updatePitch();
-      if (this.continuousUpdate) {
-        requestAnimationFrame(startRender);
-      }
+  useEffect(() => {
+    const animate = (time) => {
+      callback(time);
+      requestRef.current = requestAnimationFrame(animate);
     };
-    startRender();
-    window.addEventListener('resize', this.onResize);
-  }
 
-  componentWillUnmount() {
-    this.continuousUpdate = false;
-    window.removeEventListener('resize', this.onResize);
-  }
+    requestRef.current = requestAnimationFrame(animate);
 
-  readNotes() {
-    // decode notes from query parameter
-    this.notes = [];
-    const params = qs.parse(window.location.search.substr(1));
-    if (params.s1) {
-      try {
-        this.notes = decodeS1(params.s1);
-      } catch (error) {
-        alert(error.toString());
-      }
-    }
-  }
+    return () => {
+      cancelAnimationFrame(requestRef.current);
+    };
+  }, []); // run this effect only once
+};
 
-  onResize = () => {
-    if (this.pitchDisplay) {
-      this.pitchDisplay.resize();
-    }
-  };
+function PitchComponent({
+  freq,
+  clarity,
+}: PitchProps) {
+  const pitchDisplay = useRef();
 
-  updatePitch() {
-    const time = new Date().getTime();
-    if (time - this.lastRender < 17) {
-      // We don't want to render faster than 60fps
+  const updatePitch = useCallback(() => {
+    if (!pitchDisplay.current) {
       return;
     }
-    if (!this.pitchDisplay) {
-      return;
-    }
-    const { freq, clarity } = this.props;
+
     if (freq && freq > 0) {
-      this.pitchDisplay.pushFrequency({
+      const time = new Date().getTime();
+      pitchDisplay.current.pushFrequency({
         frequency: freq,
         clarity: clarity || 0,
         time,
       });
     }
-    this.lastRender = time;
-    this.pitchDisplay.render(false);
+    pitchDisplay.current.render(false);
+  }, [clarity, freq]);
+
+  if (freq && freq > 0) {
+    requestAnimationFrame((time) => updatePitch(time));
   }
 
-  render() {
-    this.updatePitch();
-    const fastForwardStyle = {
-      position: 'absolute',
-      bottom: 40,
-      right: 40,
-    };
-    const pauseStyle = {
-      position: 'absolute',
-      bottom: 40,
-      left: 80,
-    };
-    return (
-      <React.Fragment>
-        <div
-          className="full"
-          style={{ position: 'relative' }}
-          ref={this.displayElement}
-        />
-        <PauseButton
-          onPress={() => this.pitchDisplay.pauseSong()}
-          onRelease={() => this.pitchDisplay.playSong()}
-          style={pauseStyle}
-        />
-        <FastForwardButton
-          onPress={() => this.pitchDisplay.fastForwardSong()}
-          onRelease={() => this.pitchDisplay.playSong()}
-          style={fastForwardStyle}
-        />
-      </React.Fragment>
-    );
-  }
+  // Keep rendering and scrolling pitchDisplay at regular time intervals
+  // even though the note has not changed
+  useAnimationFrame(updatePitch);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (pitchDisplay.current) {
+        pitchDisplay.current.resize();
+      }
+    }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const notes = useStoreState((state) => state.melody.notes);
+  useEffect(() => {
+    if (pitchDisplay.current && notes) {
+      pitchDisplay.current.setMelodyNotes(notes);
+    }
+  }, [notes]);
+
+  const fastForwardStyle = {
+    position: 'absolute',
+    bottom: 40,
+    right: 40,
+  };
+  const pauseStyle = {
+    position: 'absolute',
+    bottom: 40,
+    left: 80,
+  };
+
+  const onDisplayRef = useCallback((element) => {
+    if (element && !pitchDisplay.current) {
+      // pitchDisplayRef.current = new PitchDisplay(displayElementRef.current!, 6000);
+      pitchDisplay.current = new PitchDisplay(element, 6000);
+      pitchDisplay.current.setBackgroundColor(BACKGROUND);
+      if (notes) {
+        pitchDisplay.current.setMelodyNotes(notes);
+      }
+      pitchDisplay.current.playSong();
+    }
+  }, [notes]);
+
+  return (
+    <React.Fragment>
+      <div
+        className="full"
+        style={{ position: 'relative' }}
+        ref={onDisplayRef}
+      />
+      <PauseButton
+        onPress={() => pitchDisplay.current.pauseSong()}
+        onRelease={() => pitchDisplay.current.playSong()}
+        style={pauseStyle}
+      />
+      <FastForwardButton
+        onPress={() => pitchDisplay.current.fastForwardSong()}
+        onRelease={() => pitchDisplay.current.playSong()}
+        style={fastForwardStyle}
+      />
+    </React.Fragment>
+  );
 }
 
 export default PitchComponent;
