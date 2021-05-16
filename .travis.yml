@@ -17,8 +17,10 @@ before_script:
   - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
   # build web assembly component
   - cd wasm && wasm-pack build --target web
-  - cd ../client && npm ci
+  # install node modules
   - cd ../display && npm ci
+  - cd ../client && npm ci
+  - cd ..
 
 script:
   - cd client && npm run lint
