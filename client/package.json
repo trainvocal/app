@@ -37,6 +37,7 @@
   },
   "scripts": {
     "build:worker": "rollup -c",
+    "lint": "eslint .",
     "start": "npm run build:worker && react-scripts start",
     "build": "npm run build:worker && react-scripts build",
     "test": "react-scripts test",
@@ -54,6 +55,17 @@
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "ignorePatterns": ["build/", "public/pitch-detection/"],
+    "rules": {
+      "quotes": ["error", "single"]
+    },
+    "overrides": [
+      {
+        "files": ["**/*.ts?(x)"],
+        "rules": {
+        }
+      }
     ]
   },
   "husky": {

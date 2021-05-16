@@ -1,5 +1,4 @@
-import React, { Component, useCallback, useEffect, useRef } from 'react';
-import qs from 'qs';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 import { PitchDisplay } from 'pitch-display';
 
@@ -41,6 +40,7 @@ const useAnimationFrame = (callback) => {
     return () => {
       cancelAnimationFrame(requestRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // run this effect only once
 };
 
