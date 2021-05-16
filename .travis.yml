@@ -1,0 +1,18 @@
+language: node_js
+node_js:
+  - 14
+
+# cache node_modules directories
+cache:
+  directories:
+    - client/node_modules
+    - display/node_modules
+
+before_script:
+  - cd client && npm ci
+  - cd ../display && npm ci
+
+script:
+  - cd client && npm run lint
+  - cd ../display && npm run build
+  - cd ../client && npm run build
