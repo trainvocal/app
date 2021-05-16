@@ -9,7 +9,15 @@ cache:
     - display/node_modules
 
 before_script:
-  - cd client && npm ci
+  # install rustup
+  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  - export PATH="$HOME/.cargo/bin:$PATH"
+  - source "$HOME/.cargo/env"
+  # install wasm-pack
+  - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+  # build web assembly component
+  - cd wasm && wasm-pack build --target web
+  - cd ../client && npm ci
   - cd ../display && npm ci
 
 script:
