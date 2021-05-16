@@ -86,8 +86,8 @@ function PitchComponent({
 
   const notes = useStoreState((state) => state.melody.notes);
   useEffect(() => {
-    if (pitchDisplay.current && notes) {
-      pitchDisplay.current.setMelodyNotes(notes);
+    if (pitchDisplay.current && notes && notes.notes) {
+      pitchDisplay.current.setMelodyNotes(notes.notes);
     }
   }, [notes]);
 

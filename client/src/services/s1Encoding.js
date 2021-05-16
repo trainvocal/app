@@ -64,13 +64,20 @@ export function decodeS1(data) {
     throw new Error('No content');
   }
 
+  let pos = 0;
   let checksum = 0;
-  // read original checksum
-  const origChecksum = buffer.readUInt16BE(0);
+  // read original 16-bit checksum
+  const origChecksum = buffer.readUInt16BE(pos);
+  pos += 2;
+
+  // read 16-bit timestamp
+  const days = buffer.readUInt16BE(pos);
+  pos += 2;
+  checksum += days;
+  const created = new Date(days * 86400000);
 
   // read content
   let lastEnd = 0;
-  let pos = 2; // skip checksum, first 2 bytes
   while (pos < buffer.length) {
     // check first bit
     const isLong = buffer.readUIntBE(pos, 1) & 128;
@@ -111,7 +118,10 @@ export function decodeS1(data) {
     throw new Error('Corrupted data: invalid checksum');
   }
 
-  return notes;
+  return {
+    created,
+    notes,
+  };
 }
 
 export function encodeS1(data) {
@@ -126,6 +136,17 @@ export function encodeS1(data) {
     }
     return value << shiftBits;
   }
+
+  function addTimestamp() {
+    // add timestamp, days since epoch
+    const days = Math.floor(new Date().getTime() / 86400000);
+    const bytes = Buffer.alloc(2);
+    bytes.writeUInt16BE(days);
+    buffers.push(bytes);
+    checksum += days;
+  }
+
+  addTimestamp();
 
   for (let i = 0; i < data.notes.length; i++) {
     const note = data.notes[i];
