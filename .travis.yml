@@ -10,7 +10,7 @@ cache:
 
 before_script:
   # install rustup
-  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
   - export PATH="$HOME/.cargo/bin:$PATH"
   - source "$HOME/.cargo/env"
   # install wasm-pack
