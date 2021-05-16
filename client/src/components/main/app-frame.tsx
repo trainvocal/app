@@ -41,9 +41,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     stopStream,
     setEnabled,
     setMelodyNotes,
-  } = useStoreActions(
-    (actions) => actions
-  );
+  } = useStoreActions((actions) => actions);
 
   React.useEffect(() => {
     if (running) {
@@ -66,13 +64,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     }
 
     return stopStream;
-  }, [
-    initializeStream,
-    running,
-    setEnabled,
-    setMelodyNotes,
-    stopStream,
-  ]);
+  }, [initializeStream, running, setEnabled, setMelodyNotes, stopStream]);
 
   return (
     <React.Fragment>

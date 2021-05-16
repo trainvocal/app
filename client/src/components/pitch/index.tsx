@@ -44,10 +44,7 @@ const useAnimationFrame = (callback) => {
   }, []); // run this effect only once
 };
 
-function PitchComponent({
-  freq,
-  clarity,
-}: PitchProps) {
+function PitchComponent({ freq, clarity }: PitchProps) {
   const pitchDisplay = useRef();
 
   const updatePitch = useCallback(() => {
@@ -79,7 +76,7 @@ function PitchComponent({
       if (pitchDisplay.current) {
         pitchDisplay.current.resize();
       }
-    }
+    };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -102,17 +99,20 @@ function PitchComponent({
     left: 80,
   };
 
-  const onDisplayRef = useCallback((element) => {
-    if (element && !pitchDisplay.current) {
-      // pitchDisplayRef.current = new PitchDisplay(displayElementRef.current!, 6000);
-      pitchDisplay.current = new PitchDisplay(element, 6000);
-      pitchDisplay.current.setBackgroundColor(BACKGROUND);
-      if (notes) {
-        pitchDisplay.current.setMelodyNotes(notes);
+  const onDisplayRef = useCallback(
+    (element) => {
+      if (element && !pitchDisplay.current) {
+        // pitchDisplayRef.current = new PitchDisplay(displayElementRef.current!, 6000);
+        pitchDisplay.current = new PitchDisplay(element, 6000);
+        pitchDisplay.current.setBackgroundColor(BACKGROUND);
+        if (notes) {
+          pitchDisplay.current.setMelodyNotes(notes);
+        }
+        pitchDisplay.current.playSong();
       }
-      pitchDisplay.current.playSong();
-    }
-  }, [notes]);
+    },
+    [notes]
+  );
 
   return (
     <React.Fragment>

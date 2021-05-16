@@ -1,8 +1,8 @@
-import { scaleLinear, ScaleLinear } from 'd3-scale';
+import { scaleLinear, ScaleLinear } from "d3-scale";
 
-import { NOTE_STRINGS } from '../constants';
+import { NOTE_STRINGS } from "../constants";
 
-import { noteFromPitch, colorFromNote, centsOffFromPitch} from '../utils';
+import { noteFromPitch, colorFromNote, centsOffFromPitch } from "../utils";
 
 interface IFrequency {
   frequency: number;
@@ -33,8 +33,8 @@ class PitchDisplay {
   speedChanged: number;
   frequencies: IFrequency[] = [];
   melodyNotes: IMelodyNote[] = [];
-  background: string = '#efefef';
-  highlight: string = '#888888';
+  background: string = "#efefef";
+  highlight: string = "#888888";
 
   constructor(container: HTMLElement, timeSpan: number = 15000) {
     this.container = container;
@@ -43,15 +43,15 @@ class PitchDisplay {
     const canvasStyle = "position: absolute; width: 100%; height: 100%;";
     this.bgCanvas = document.createElement("canvas");
     this.bgCanvas.setAttribute("style", canvasStyle);
-    this.bgContext = this.bgCanvas.getContext('2d');
+    this.bgContext = this.bgCanvas.getContext("2d");
 
     this.melodyCanvas = document.createElement("canvas");
     this.melodyCanvas.setAttribute("style", canvasStyle);
-    this.melodyContext = this.melodyCanvas.getContext('2d');
+    this.melodyContext = this.melodyCanvas.getContext("2d");
 
     this.noteCanvas = document.createElement("canvas");
     this.noteCanvas.setAttribute("style", canvasStyle);
-    this.noteContext = this.noteCanvas.getContext('2d');
+    this.noteContext = this.noteCanvas.getContext("2d");
 
     this.container.appendChild(this.bgCanvas);
     this.container.appendChild(this.melodyCanvas);
@@ -95,7 +95,9 @@ class PitchDisplay {
 
   cleanupFrequencies() {
     // Throw away the frequencies that are out of the current display window
-    this.frequencies = this.frequencies.filter((val) => this.now - val.time < this.timeSpan / 2);
+    this.frequencies = this.frequencies.filter(
+      (val) => this.now - val.time < this.timeSpan / 2
+    );
   }
 
   setMelodyNotes(melodyNotes: IMelodyNote[]) {
@@ -119,7 +121,7 @@ class PitchDisplay {
   }
 
   changePlayingSpeed(speed: number) {
-    const now = (new Date()).getTime();
+    const now = new Date().getTime();
     if (this.speedChanged === undefined) {
       this.speedChanged = now;
     }
@@ -129,7 +131,7 @@ class PitchDisplay {
   }
 
   render(full: boolean = true) {
-    this.now = (new Date()).getTime();
+    this.now = new Date().getTime();
     // calculate song position
     const songPos = this.calculateSongPos(this.now);
 
@@ -160,14 +162,14 @@ class PitchDisplay {
 
     for (let i = 0; i < NOTE_STRINGS.length; ++i) {
       let y = this.scaleY(i);
-      this.bgContext.fillStyle = this.highlight + '55';
+      this.bgContext.fillStyle = this.highlight + "55";
       this.bgContext.fillRect(0, y, w, 1);
       this.bgContext.fillStyle = this.highlight;
-      this.bgContext.font = '14px Sans'
+      this.bgContext.font = "14px Sans";
       this.bgContext.fillText(NOTE_STRINGS[i], this.scaleX(0) + 20, y - 2);
     }
 
-    this.bgContext.fillStyle = this.highlight + '55';
+    this.bgContext.fillStyle = this.highlight + "55";
     this.bgContext.fillRect(this.scaleX(0), 0, 1, h);
   }
 
@@ -177,7 +179,7 @@ class PitchDisplay {
 
     this.noteContext.clearRect(0, 0, w, h);
     this.noteContext.beginPath();
-    this.noteContext.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+    this.noteContext.strokeStyle = "rgba(0, 0, 0, 0.1)";
 
     // Calculate notes and colors from frequencies
     const notes = [];
@@ -188,22 +190,22 @@ class PitchDisplay {
       let note = noteFromPitch(f);
       let centsOff = centsOffFromPitch(f, note);
       let x = this.scaleX(t - this.now);
-      let y = this.scaleY(note % 12 + centsOff / 100);
+      let y = this.scaleY((note % 12) + centsOff / 100);
       let color = colorFromNote(note);
       notes.push({
         time: t,
         x,
         y,
         clarity: c,
-        color
-      })
+        color,
+      });
     }
 
     // Draw lines
     const timeCutoff = 500;
     this.noteContext.beginPath();
     for (let i = 1; i < notes.length; ++i) {
-      const {x, y, time} = notes[i];
+      const { x, y, time } = notes[i];
       const prevTime = notes[i - 1].time;
       if (time - prevTime > timeCutoff) {
         this.noteContext.stroke();
@@ -217,8 +219,10 @@ class PitchDisplay {
 
     // Draw circles
     for (let note of notes) {
-      const {x, y, clarity, color} = note;
-      this.noteContext.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${clarity * 0.5})`;
+      const { x, y, clarity, color } = note;
+      this.noteContext.fillStyle = `rgba(${color[0]}, ${color[1]}, ${
+        color[2]
+      }, ${clarity * 0.5})`;
       this.noteContext.beginPath();
       this.noteContext.arc(x, y, 3, 0, Math.PI * 2);
       this.noteContext.fill();
@@ -231,7 +235,7 @@ class PitchDisplay {
 
     const ctx: CanvasRenderingContext2D = this.melodyContext;
     ctx.clearRect(0, 0, w, h);
-    ctx.strokeStyle = 'rgba(0, 255, 0, 1)';
+    ctx.strokeStyle = "rgba(0, 255, 0, 1)";
     ctx.lineWidth = h / 24;
     for (let note of this.melodyNotes) {
       const { start, duration, pitch } = note;
@@ -246,4 +250,4 @@ class PitchDisplay {
   }
 }
 
-export { PitchDisplay }
+export { PitchDisplay };

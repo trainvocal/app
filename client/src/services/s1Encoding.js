@@ -33,8 +33,7 @@ const LONG_BITS = {
 
 // Returns true if this note can be encoded with 16 bits.
 function canUseShort(start, duration) {
-  return (start < (1 << (SHORT_BITS.start)) &&
-    duration < (1 << SHORT_BITS.duration));
+  return start < 1 << SHORT_BITS.start && duration < 1 << SHORT_BITS.duration;
 }
 
 // Replaces some characters in base64 encoded data to be URL safe (RFC 3986):
@@ -42,17 +41,11 @@ function canUseShort(start, duration) {
 // '/' -> '.'
 // '=' -> '-'
 function safeBase64(data) {
-  return data
-    .replace(/\+/g, '_')
-    .replace(/\//g, '.')
-    .replace(/=/g, '-');
+  return data.replace(/\+/g, '_').replace(/\//g, '.').replace(/=/g, '-');
 }
 
 function unsafeBase64(data) {
-  return data
-    .replace(/_/g, '+')
-    .replace(/\./g, '/')
-    .replace(/-/g, '=');
+  return data.replace(/_/g, '+').replace(/\./g, '/').replace(/-/g, '=');
 }
 
 export function decodeS1(data) {
@@ -89,17 +82,23 @@ export function decodeS1(data) {
       // read 24-bit value
       bytes = 3;
       const value = buffer.readUIntBE(pos, bytes);
-      start = (value >> (LONG_BITS.duration + LONG_BITS.pitch)) & ((1 << LONG_BITS.start) - 1);
+      start =
+        (value >> (LONG_BITS.duration + LONG_BITS.pitch)) &
+        ((1 << LONG_BITS.start) - 1);
       duration = (value >> LONG_BITS.pitch) & ((1 << LONG_BITS.duration) - 1);
-      pitch = value & ((1 << LONG_BITS.pitch) - 1)  & ((1 << LONG_BITS.pitch) - 1);
+      pitch =
+        value & ((1 << LONG_BITS.pitch) - 1) & ((1 << LONG_BITS.pitch) - 1);
       checksum += value;
     } else {
       // read 16-bit value
       bytes = 2;
       const value = buffer.readUIntBE(pos, bytes);
-      start = (value >> (SHORT_BITS.duration + SHORT_BITS.pitch)) & ((1 << SHORT_BITS.start) - 1);
+      start =
+        (value >> (SHORT_BITS.duration + SHORT_BITS.pitch)) &
+        ((1 << SHORT_BITS.start) - 1);
       duration = (value >> SHORT_BITS.pitch) & ((1 << SHORT_BITS.duration) - 1);
-      pitch = value & ((1 << SHORT_BITS.pitch) - 1)  & ((1 << SHORT_BITS.pitch) - 1);
+      pitch =
+        value & ((1 << SHORT_BITS.pitch) - 1) & ((1 << SHORT_BITS.pitch) - 1);
       checksum += value;
     }
 
@@ -132,7 +131,9 @@ export function encodeS1(data) {
   function bitHandle(value, valueBits, shiftBits) {
     const max = (1 << valueBits) - 1;
     if (value > max) {
-      throw new Error(`${valueBits} bits not enough for value ${value}, use another encoding`);
+      throw new Error(
+        `${valueBits} bits not enough for value ${value}, use another encoding`
+      );
     }
     return value << shiftBits;
   }
@@ -150,14 +151,18 @@ export function encodeS1(data) {
 
   for (let i = 0; i < data.notes.length; i++) {
     const note = data.notes[i];
-    const start = Math.floor((note.start - (lastPos * PRECISION)) / PRECISION);
+    const start = Math.floor((note.start - lastPos * PRECISION) / PRECISION);
     const duration = Math.floor(note.duration / PRECISION);
     lastPos += start + duration;
     const pitch = note.pitch;
 
     if (canUseShort(start, duration)) {
       // we can write a note with 16 bits
-      let num = bitHandle(start, SHORT_BITS.start, SHORT_BITS.duration + SHORT_BITS.pitch);
+      let num = bitHandle(
+        start,
+        SHORT_BITS.start,
+        SHORT_BITS.duration + SHORT_BITS.pitch
+      );
       num += bitHandle(duration, SHORT_BITS.duration, SHORT_BITS.pitch);
       num += bitHandle(pitch, SHORT_BITS.pitch, 0);
       const bytes = Buffer.alloc(2);
@@ -167,7 +172,11 @@ export function encodeS1(data) {
     } else {
       // write a note with 24 bits
       let num = 1 << 23; // first bit indicates 24-bit note
-      num += bitHandle(start, LONG_BITS.start, LONG_BITS.duration + LONG_BITS.pitch);
+      num += bitHandle(
+        start,
+        LONG_BITS.start,
+        LONG_BITS.duration + LONG_BITS.pitch
+      );
       num += bitHandle(duration, LONG_BITS.duration, LONG_BITS.pitch);
       num += bitHandle(pitch, LONG_BITS.pitch, 0);
       const bytes = Buffer.alloc(3);
