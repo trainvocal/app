@@ -1,6 +1,6 @@
 import { scaleLinear, ScaleLinear } from 'd3-scale';
 
-import { NOTE_STRINGS } from '../constants';
+import { NOTE_OFFSET, NOTE_STRINGS } from '../constants';
 
 import { noteFromPitch, colorFromNote, centsOffFromPitch } from '../utils';
 
@@ -8,6 +8,11 @@ interface IFrequency {
   frequency: number;
   clarity: number;
   time: number;
+  // pitch is calculated from frequency
+  pitch: number;
+  // melodyPitch is the pitch that is nearest to the melody note,
+  // it can be same as pitch or in different octave
+  melodyPitch: number;
 }
 
 interface IMelodyNote {
@@ -83,14 +88,71 @@ class PitchDisplay {
 
     let margin = h / (NOTE_STRINGS.length + 1);
     this.scaleY = scaleLinear()
-      .domain([0, NOTE_STRINGS.length - 1])
+      // .domain([0, NOTE_STRINGS.length - 1])
+      .domain([0, 2 * NOTE_STRINGS.length - 1])
       .range([h - margin, margin]);
 
     this.render();
   }
 
+  // Returns nearest melody note by given time.
+  getNearestMelodyNote(time: number) {
+    if (!this.melodyNotes.length) {
+      return undefined;
+    }
+
+    const songPos = this.calculateSongPos(time);
+    for (let i = 0; i < this.melodyNotes.length; i++) {
+      const note = this.melodyNotes[i];
+
+      let start = 0;
+      if (i > 0) {
+        const prevNote = this.melodyNotes[i - 1];
+        // calculate time between two notes
+        start = (prevNote.start + prevNote.duration + note.start) / 2;
+      }
+
+      let end = Infinity;
+      if (i < this.melodyNotes.length - 1) {
+        // calculate time between two notes
+        const nextNote = this.melodyNotes[i + 1];
+        end = (note.start + note.duration + nextNote.start) / 2;
+      }
+
+      if (songPos >= start && songPos < end) {
+        return note;
+      }
+    }
+
+    // no note found
+    return undefined;
+  }
+
   pushFrequency(frequency: IFrequency) {
-    this.frequencies.push(frequency);
+    // calculate pitch of the frequency
+    const f: number = frequency.frequency;
+    const note = noteFromPitch(f);
+    const centsOff = centsOffFromPitch(f, note);
+    const pitch = note + centsOff / 100;
+
+    let melodyPitch;
+    const nearestMelodyNote = this.getNearestMelodyNote(frequency.time);
+    if (nearestMelodyNote) {
+      // check if other octaves of this pitch are closer to the melody note
+      let diff = (pitch - nearestMelodyNote.pitch) % 12;
+      if (diff > 6) {
+        diff -= 12;
+      } else if (diff < -6) {
+        diff += 12;
+      }
+      melodyPitch = nearestMelodyNote.pitch + diff;
+    }
+
+    this.frequencies.push({
+      ...frequency,
+      pitch,
+      melodyPitch,
+    });
   }
 
   cleanupFrequencies() {
@@ -160,13 +222,17 @@ class PitchDisplay {
     this.bgContext.clearRect(0, 0, w, h);
     this.bgContext.fillRect(0, 0, w, h);
 
-    for (let i = 0; i < NOTE_STRINGS.length; ++i) {
+    for (let i = 0; i < 2 * NOTE_STRINGS.length; ++i) {
       let y = this.scaleY(i);
       this.bgContext.fillStyle = this.highlight + '55';
       this.bgContext.fillRect(0, y, w, 1);
       this.bgContext.fillStyle = this.highlight;
       this.bgContext.font = '14px Sans';
-      this.bgContext.fillText(NOTE_STRINGS[i], this.scaleX(0) + 20, y - 2);
+      this.bgContext.fillText(
+        NOTE_STRINGS[i % NOTE_STRINGS.length],
+        this.scaleX(0) + 20,
+        y - 2
+      );
     }
 
     this.bgContext.fillStyle = this.highlight + '55';
@@ -185,13 +251,13 @@ class PitchDisplay {
     const notes = [];
     for (let frequency of this.frequencies) {
       let t: number = frequency.time;
-      let f: number = frequency.frequency;
       let c: number = frequency.clarity;
-      let note = noteFromPitch(f);
-      let centsOff = centsOffFromPitch(f, note);
       let x = this.scaleX(t - this.now);
-      let y = this.scaleY((note % 12) + centsOff / 100);
-      let color = colorFromNote(note);
+      const pitch = frequency.melodyPitch
+        ? frequency.melodyPitch
+        : frequency.pitch;
+      let y = this.scaleY((pitch + NOTE_OFFSET) % 24);
+      let color = colorFromNote(Math.floor(frequency.pitch));
       notes.push({
         time: t,
         x,
@@ -241,7 +307,7 @@ class PitchDisplay {
       const { start, duration, pitch } = note;
       const startX = this.scaleX(start - songPos);
       const endX = this.scaleX(start - songPos + duration);
-      const y = this.scaleY(pitch % 12);
+      const y = this.scaleY((pitch + NOTE_OFFSET) % 24);
       ctx.beginPath();
       ctx.moveTo(startX, y);
       ctx.lineTo(endX, y);

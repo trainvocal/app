@@ -60,10 +60,10 @@ interface StoreModel {
 
 export const store = createStore<StoreModel>({
   // Default values
-  windowSize: 1024,
+  windowSize: 2048, // 1024
   detectorName: 'mcleod',
   displayType: 'chart',
-  clarityThreshold: 0.5,
+  clarityThreshold: 0.7, // 0.5
   enabled: false,
   loading: false,
   loaded: false,
