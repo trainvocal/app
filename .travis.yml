@@ -14,6 +14,8 @@ before_script:
   # install rustup if not cached
   - test -f $HOME/.cargo/env || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
   - source "$HOME/.cargo/env"
+  # set default toolchain set
+  - rustup default stable
   # install wasm-pack cargo crate if not cached
   - test -f $HOME/.cargo/bin/wasm-pack || cargo install --version 0.9.1 wasm-pack
   # build web assembly component
