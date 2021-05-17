@@ -48,8 +48,8 @@
     "prettier:write-staged": "pretty-quick --staged --write --pattern '**/*.{js,jsx,ts,tsx,css,html}'",
     "prettier:check-modified": "pretty-quick --check --pattern '**/*.{js,jsx,ts,tsx,css,html}'",
     "prettier:write-modified": "pretty-quick --write --pattern '**/*.{js,jsx,ts,tsx,css,html}'",
-    "prettier:check-all": "prettier --check '**/*.{js,jsx,ts,tsx,css,html}'",
-    "prettier:write-all": "prettier --write '**/*.{js,jsx,ts,tsx,css,html}'"
+    "prettier:check-all": "prettier --check 'src/**/*.{js,jsx,ts,tsx,css,html}'",
+    "prettier:write-all": "prettier --write 'src/**/*.{js,jsx,ts,tsx,css,html}'"
   },
   "eslintConfig": {
     "extends": [

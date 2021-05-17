@@ -7,6 +7,7 @@ cache:
   directories:
     - client/node_modules
     - display/node_modules
+    - $HOME/.cargo
 
 before_script:
   # install rustup
@@ -17,12 +18,19 @@ before_script:
   - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
   # build web assembly component
   - cd wasm && wasm-pack build --target web
+  - ls -la
   # install node modules
   - cd ../display && npm ci
   - cd ../client && npm ci
-  - cd ..
+  - cd $TRAVIS_BUILD_DIR
 
 script:
-  - cd client && npm run lint
+  # run prettier to validate
+  - cd client && npm run prettier:check-all
+  - cd ../display && npm run prettier:check-all
+  # lint the code
+  - cd ../client && npm run lint
+  # build the display component
   - cd ../display && npm run build
+  # build the app
   - cd ../client && npm run build

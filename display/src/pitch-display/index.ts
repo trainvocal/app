@@ -1,8 +1,8 @@
-import { scaleLinear, ScaleLinear } from "d3-scale";
+import { scaleLinear, ScaleLinear } from 'd3-scale';
 
-import { NOTE_STRINGS } from "../constants";
+import { NOTE_STRINGS } from '../constants';
 
-import { noteFromPitch, colorFromNote, centsOffFromPitch } from "../utils";
+import { noteFromPitch, colorFromNote, centsOffFromPitch } from '../utils';
 
 interface IFrequency {
   frequency: number;
@@ -33,25 +33,25 @@ class PitchDisplay {
   speedChanged: number;
   frequencies: IFrequency[] = [];
   melodyNotes: IMelodyNote[] = [];
-  background: string = "#efefef";
-  highlight: string = "#888888";
+  background: string = '#efefef';
+  highlight: string = '#888888';
 
   constructor(container: HTMLElement, timeSpan: number = 15000) {
     this.container = container;
 
-    this.container.style.position = "relative";
-    const canvasStyle = "position: absolute; width: 100%; height: 100%;";
-    this.bgCanvas = document.createElement("canvas");
-    this.bgCanvas.setAttribute("style", canvasStyle);
-    this.bgContext = this.bgCanvas.getContext("2d");
+    this.container.style.position = 'relative';
+    const canvasStyle = 'position: absolute; width: 100%; height: 100%;';
+    this.bgCanvas = document.createElement('canvas');
+    this.bgCanvas.setAttribute('style', canvasStyle);
+    this.bgContext = this.bgCanvas.getContext('2d');
 
-    this.melodyCanvas = document.createElement("canvas");
-    this.melodyCanvas.setAttribute("style", canvasStyle);
-    this.melodyContext = this.melodyCanvas.getContext("2d");
+    this.melodyCanvas = document.createElement('canvas');
+    this.melodyCanvas.setAttribute('style', canvasStyle);
+    this.melodyContext = this.melodyCanvas.getContext('2d');
 
-    this.noteCanvas = document.createElement("canvas");
-    this.noteCanvas.setAttribute("style", canvasStyle);
-    this.noteContext = this.noteCanvas.getContext("2d");
+    this.noteCanvas = document.createElement('canvas');
+    this.noteCanvas.setAttribute('style', canvasStyle);
+    this.noteContext = this.noteCanvas.getContext('2d');
 
     this.container.appendChild(this.bgCanvas);
     this.container.appendChild(this.melodyCanvas);
@@ -162,14 +162,14 @@ class PitchDisplay {
 
     for (let i = 0; i < NOTE_STRINGS.length; ++i) {
       let y = this.scaleY(i);
-      this.bgContext.fillStyle = this.highlight + "55";
+      this.bgContext.fillStyle = this.highlight + '55';
       this.bgContext.fillRect(0, y, w, 1);
       this.bgContext.fillStyle = this.highlight;
-      this.bgContext.font = "14px Sans";
+      this.bgContext.font = '14px Sans';
       this.bgContext.fillText(NOTE_STRINGS[i], this.scaleX(0) + 20, y - 2);
     }
 
-    this.bgContext.fillStyle = this.highlight + "55";
+    this.bgContext.fillStyle = this.highlight + '55';
     this.bgContext.fillRect(this.scaleX(0), 0, 1, h);
   }
 
@@ -179,7 +179,7 @@ class PitchDisplay {
 
     this.noteContext.clearRect(0, 0, w, h);
     this.noteContext.beginPath();
-    this.noteContext.strokeStyle = "rgba(0, 0, 0, 0.1)";
+    this.noteContext.strokeStyle = 'rgba(0, 0, 0, 0.1)';
 
     // Calculate notes and colors from frequencies
     const notes = [];
@@ -235,7 +235,7 @@ class PitchDisplay {
 
     const ctx: CanvasRenderingContext2D = this.melodyContext;
     ctx.clearRect(0, 0, w, h);
-    ctx.strokeStyle = "rgba(0, 255, 0, 1)";
+    ctx.strokeStyle = 'rgba(0, 255, 0, 1)';
     ctx.lineWidth = h / 24;
     for (let note of this.melodyNotes) {
       const { start, duration, pitch } = note;
