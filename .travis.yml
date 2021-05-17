@@ -18,7 +18,6 @@ before_script:
   - test -f $HOME/.cargo/bin/wasm-pack || cargo install --version 0.9.1 wasm-pack
   # build web assembly component
   - cd wasm && wasm-pack build --target web
-  - ls -la
   # install node modules
   - cd ../display && npm ci
   - cd ../client && npm ci
