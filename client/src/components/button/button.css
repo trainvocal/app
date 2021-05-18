@@ -1,0 +1,27 @@
+.ctrl-btn {
+  cursor: pointer;
+}
+
+.btn-forward {
+  position: absolute;
+  bottom: 4em;
+  right: 8em;
+}
+
+.btn-pause {
+  position: absolute;
+  bottom: 4em;
+  left: 16em;
+}
+
+.btn-stop {
+  position: absolute;
+  bottom: 4em;
+  left: 24em;
+}
+
+.btn-skip-start {
+  position: absolute;
+  bottom: 4em;
+  left: 8em;
+}

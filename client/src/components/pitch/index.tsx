@@ -2,28 +2,18 @@ import React, { useCallback, useEffect, useRef } from 'react';
 
 import { PitchDisplay } from 'pitch-display';
 
+import {
+  ForwardButton,
+  PauseButton,
+  SkipStartButton,
+  StopButton,
+} from '../button';
 import { BACKGROUND } from '../../constants/colors';
-import { useStoreState } from '../../model';
+import { useStoreActions, useStoreState } from '../../model';
 
 export interface PitchProps {
   freq: number | null;
   clarity: number | null;
-}
-
-function FastForwardButton({ onPress, onRelease, style }) {
-  return (
-    <div style={style} onMouseDown={onPress} onMouseUp={onRelease}>
-      FAST FORWARD
-    </div>
-  );
-}
-
-function PauseButton({ onPress, onRelease, style }) {
-  return (
-    <div style={style} onMouseDown={onPress} onMouseUp={onRelease}>
-      PAUSE
-    </div>
-  );
 }
 
 const useAnimationFrame = (callback) => {
@@ -88,16 +78,14 @@ function PitchComponent({ freq, clarity }: PitchProps) {
     }
   }, [notes]);
 
-  const fastForwardStyle = {
-    position: 'absolute',
-    bottom: 40,
-    right: 40,
-  };
-  const pauseStyle = {
-    position: 'absolute',
-    bottom: 40,
-    left: 80,
-  };
+  const {
+    stopStream,
+    setEnabled,
+  } = useStoreActions((actions) => actions);
+
+  const btnSize = 50;
+  const btnColor = 'red';
+  const btnColorPressed = 'black';
 
   const onDisplayRef = useCallback(
     (element) => {
@@ -114,6 +102,12 @@ function PitchComponent({ freq, clarity }: PitchProps) {
     [notes]
   );
 
+  const onStop = async () => {
+    setEnabled(false);
+    await stopStream();
+    console.log('Stream Stopped');
+  };
+
   return (
     <React.Fragment>
       <div
@@ -121,15 +115,37 @@ function PitchComponent({ freq, clarity }: PitchProps) {
         style={{ position: 'relative' }}
         ref={onDisplayRef}
       />
+      <SkipStartButton
+        onPress={() => pitchDisplay.current.seekToFirstNote()}
+        onRelease={() => pitchDisplay.current.playSong()}
+        onCancel={() => pitchDisplay.current.playSong()}
+        className="btn-skip-start"
+        size={btnSize}
+        color={btnColor}
+        colorPressed={btnColorPressed}
+      />
       <PauseButton
         onPress={() => pitchDisplay.current.pauseSong()}
         onRelease={() => pitchDisplay.current.playSong()}
-        style={pauseStyle}
+        className="btn-pause"
+        size={btnSize}
+        color={btnColor}
+        colorPressed={btnColorPressed}
       />
-      <FastForwardButton
+      <StopButton
+        onRelease={onStop}
+        className="btn-stop"
+        size={btnSize}
+        color={btnColor}
+        colorPressed={btnColorPressed}
+      />
+      <ForwardButton
         onPress={() => pitchDisplay.current.fastForwardSong()}
         onRelease={() => pitchDisplay.current.playSong()}
-        style={fastForwardStyle}
+        className="btn-forward"
+        size={btnSize}
+        color={btnColor}
+        colorPressed={btnColorPressed}
       />
     </React.Fragment>
   );

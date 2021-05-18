@@ -192,6 +192,13 @@ class PitchDisplay {
     this.speedChanged = now;
   }
 
+  seekToFirstNote() {
+    this.changePlayingSpeed(0);
+    if (this.melodyNotes.length > 0) {
+      this.lastSongPos = this.melodyNotes[0].start;
+    }
+  }
+
   render(full: boolean = true) {
     this.now = new Date().getTime();
     // calculate song position
