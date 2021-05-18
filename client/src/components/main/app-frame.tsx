@@ -69,7 +69,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   return (
     <React.Fragment>
       <Navbar bg="primary" variant="dark">
-        <Navbar.Brand>My Vocal</Navbar.Brand>
+        <Navbar.Brand>Train Vocal</Navbar.Brand>
       </Navbar>
       <div className="main-container">
         <SideNav expanded={menuExpanded} onToggle={setMenuExpanded}>
